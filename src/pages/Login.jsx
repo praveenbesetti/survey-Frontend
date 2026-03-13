@@ -15,6 +15,10 @@ export const Login = () => {
     const navigate = useNavigate();
 
     const handleLogin = () => {
+        if (adminId !== ADMIN_ID || password !== ADMIN_PASSWORD) {
+            message.error("Invalid Admin ID or Password");
+            return;
+        }
         localStorage.setItem("adminToken", "true");
 
         message.success("Login Successful");
