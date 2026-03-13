@@ -34,6 +34,5 @@ jobs:
 
     - name: Upload to GCS
       run: |
-       # Use quotes to ensure the bucket name isn't split into multiple arguments
-       BUCKET_NAME="${{ secrets.GCP_BUCKET_NAME }}"
-       gsutil -m rsync -d -r -x ".*\.map$|.*\.DS_Store$" ./build "gs://$BUCKET_NAME"
+       # Try ./dist if you are using Vite, or ./build if using Create React App
+       gsutil -m rsync -d -r ./dist "gs://${{ secrets.GCP_BUCKET_NAME }}"
