@@ -8,8 +8,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { protectedRoutes } from './routes/routesConfig';
 import 'antd/dist/reset.css';
 import axios from 'axios';
-import { BASE_URL } from './url';
-axios.defaults.baseURL = BASE_URL; // Set your API base URL here
+import { API_BASE } from './url';
+axios.defaults.baseURL = API_BASE; // Set your API base URL here
 function AppLayout() {
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
