@@ -1,0 +1,39 @@
+name: Deploy Frontend to GCS
+
+on:
+  push:
+    branches:
+      - main  # Triggered when you push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Match your local version
+
+    - name: Install dependencies and Build
+      run: |
+        npm install
+        npm run build 
+        # Note: This creates the 'dist' or 'build' folder
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up GCloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Upload to GCS
+      run: |
+        # '-m' for multi-threaded upload, '-r' for recursive
+        # We use 'rsync -d' to delete files in bucket that are no longer in build
+        gsutil -m rsync -d -r -x ".*\.map$|.*\.DS_Store$" ./build gs://${{ secrets.GCP_BUCKET_NAME }}

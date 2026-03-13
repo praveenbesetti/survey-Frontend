@@ -16,7 +16,9 @@ export function Navbar() {
     { name: 'Home', path: '/' },
     { name: 'Shop', path: '/shop' },
     { name: 'Categories', path: '/categories' },
-    { name: 'Dashboard', path: '/admin-Dashboard', protected: true }
+    { name: 'Dashboard', path: '/admin-Dashboard', protected: true },
+    { name: 'Sub-Agent Details', path: '/sub-agent-details', protected: true },
+    { name: 'Agent Details', path: '/agent-details', protected: true }
   ];
 
   const handleLogout = () => {
