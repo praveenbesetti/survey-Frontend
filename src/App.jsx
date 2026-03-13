@@ -3,58 +3,37 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { ParticleBackground } from './components/ParticleBackground';
 import { Navbar } from './components/Navbar';
-
-import { Landing } from './pages/Landing';
-import { Shop } from './pages/Shop';
-import { Cart } from './pages/Cart';
-import { Checkout } from './pages/Checkout';
-import { Categories } from './pages/Categories';
-import { SurveyForm } from './pages/SurveyForm';
-import { Admin } from "./pages/admin";
 import { Login } from "./pages/Login";
-
 import { ProtectedRoute } from "./components/ProtectedRoute";
-
+import { protectedRoutes } from './routes/routesConfig';
 import 'antd/dist/reset.css';
-
+import axios from 'axios';
+import { API_BASE } from './url';
+axios.defaults.baseURL = API_BASE; // Set your API base URL here
 function AppLayout() {
   const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
+  const isLandingPage = location.pathname === "/";
 
   return (
     <div className="relative min-h-screen bg-bg-primary text-text-primary font-inter overflow-x-hidden">
+      {/* Background & Nav Logic */}
+      {isLandingPage && <ParticleBackground />}
+      {!isLoginPage && <Navbar />}
 
-      {location.pathname === '/' && <ParticleBackground />}
-
-      {location.pathname !== "/login" && <Navbar />}
-
-      <main className="relative z-10">
-
+      {/* Global Spacing: If not login, push content down 80px to clear Navbar */}
+      <main className={`relative z-10 ${!isLoginPage ? 'pt-20 px-4 pb-10' : ''}`}>
         <Routes>
-
-          {/* Public route */}
+          {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected routes */}
+          {/* Protected Routes mapped from config */}
           <Route element={<ProtectedRoute />}>
-
-            <Route path="/" element={<Landing />} />
-
-            <Route path="/categories" element={<Categories />} />
-
-            <Route path="/survey" element={<SurveyForm />} />
-
-            <Route path="/shop" element={<Shop />} />
-
-            <Route path="/cart" element={<Cart />} />
-
-            <Route path="/checkout" element={<Checkout />} />
-
-            <Route path="/admin-Dashboard" element={<Admin />} />
-
+            {protectedRoutes.map((route, index) => (
+              <Route key={index} path={route.path} element={route.element} />
+            ))}
           </Route>
-
         </Routes>
-
       </main>
     </div>
   );
