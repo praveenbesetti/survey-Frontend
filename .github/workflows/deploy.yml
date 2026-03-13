@@ -34,4 +34,6 @@ jobs:
 
     - name: Upload to GCS
       run: |
-       gsutil -m rsync -d -r -x ".*\.map$|.*\.DS_Store$" ./build gs://${{ secrets.GCP_BUCKET_NAME }}
+       # Use quotes to ensure the bucket name isn't split into multiple arguments
+       BUCKET_NAME="${{ secrets.GCP_BUCKET_NAME }}"
+       gsutil -m rsync -d -r -x ".*\.map$|.*\.DS_Store$" ./build "gs://$BUCKET_NAME"
