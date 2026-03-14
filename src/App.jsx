@@ -6,9 +6,10 @@ import { Navbar } from './components/Navbar';
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { protectedRoutes } from './routes/routesConfig';
-import 'antd/dist/reset.css';
 import axios from 'axios';
 import { API_BASE } from './url';
+import 'antd/dist/reset.css';
+
 axios.defaults.baseURL = API_BASE; // Set your API base URL here
 function AppLayout() {
   const location = useLocation();
