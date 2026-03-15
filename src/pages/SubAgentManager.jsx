@@ -208,6 +208,8 @@ export const SubAgentManager = () => {
                         <div style={{ width: 180 }}>
                             <Text type="secondary" style={{ fontSize: '12px' }}>STATE</Text>
                             <Select
+                                showSearch
+                                optionFilterProp="children"
                                 placeholder="Select State"
                                 style={{ width: '100%', marginTop: 4 }}
                                 loading={geoLoading.state}
@@ -221,6 +223,7 @@ export const SubAgentManager = () => {
                             <Text type="secondary" style={{ fontSize: '12px' }}>DISTRICT</Text>
                             <Select
                                 showSearch
+                                optionFilterProp="children"
                                 placeholder="Select District"
                                 style={{ width: '100%', marginTop: 4 }}
                                 loading={geoLoading.dist}
@@ -236,6 +239,7 @@ export const SubAgentManager = () => {
                             <Text type="secondary" style={{ fontSize: '12px' }}>MANDAL</Text>
                             <Select
                                 showSearch
+                                optionFilterProp="children"
                                 placeholder="Select Mandal"
                                 style={{ width: '100%', marginTop: 4 }}
                                 loading={geoLoading.mandal}

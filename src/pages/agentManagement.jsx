@@ -152,6 +152,8 @@ export const AgentManager = () => {
                         <div style={{ width: 200 }}>
                             <Text type="secondary" style={{ fontSize: '12px' }}>STATE</Text>
                             <Select
+                                showSearch
+                                optionFilterProp="children"
                                 placeholder="Select State"
                                 style={{ width: '100%' }}
                                 onChange={(val) => {
@@ -167,6 +169,7 @@ export const AgentManager = () => {
                             <Text type="secondary" style={{ fontSize: '12px' }}>DISTRICT</Text>
                             <Select
                                 showSearch
+                                optionFilterProp="children"
                                 disabled={!selectedStateId}
                                 value={selectedDistrictId}
                                 placeholder="Select District"
