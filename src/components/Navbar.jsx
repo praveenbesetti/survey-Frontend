@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { Menu, X, ShoppingCart } from 'lucide-react';
-
+import axios from 'axios';
 export function Navbar() {
   const { cartCount } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,15 +21,20 @@ export function Navbar() {
     { name: 'Agent Details', path: '/agent-details', protected: true }
   ];
 
-  const handleLogout = () => {
-    // 2. CHANGE THIS: Clear the correct keys
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("user");
+const handleLogout = async () => {
+  try {
+     localStorage.removeItem("user");          
+    localStorage.removeItem("isAuthenticated"); 
     
     navigate("/login");
-    // 3. ADD THIS: Force a refresh so the Navbar state updates immediately
     window.location.reload(); 
-  };
+    // Call your new clean logout API
+    // await axios.post('/web-auth/logout');
+  } catch (err) {
+    console.error("Logout API failed, clearing local data anyway.");
+  } 
+  
+};
 
   // ... rest of your return code remains the same
   return (

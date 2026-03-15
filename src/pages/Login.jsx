@@ -28,7 +28,7 @@ const Login = () => {
     const [fpMessage, setFpMessage] = useState('');
     const [fpError, setFpError] = useState('');
     const [fpLoading, setFpLoading] = useState(false);
-    const [resendCountdown, setResendCountdown] = useState(0);
+
 
     // Green Team Colors
     const ACCENT_GREEN = '#0c831f'; 
