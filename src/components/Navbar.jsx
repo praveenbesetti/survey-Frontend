@@ -4,28 +4,34 @@ import { useCart } from '../context/CartContext';
 import { Menu, X, ShoppingCart } from 'lucide-react';
 
 export function Navbar() {
-
   const { cartCount } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const isLoggedIn = localStorage.getItem("adminToken");
+  // 1. CHANGE THIS: Look for the key your Login page actually sets
+  const isLoggedIn = localStorage.getItem("isAuthenticated") === "true";
 
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Shop', path: '/shop' },
-    { name: 'Categories', path: '/categories' },
+    // These will now show up because isLoggedIn will be true
     { name: 'Dashboard', path: '/admin-Dashboard', protected: true },
     { name: 'Sub-Agent Details', path: '/sub-agent-details', protected: true },
     { name: 'Agent Details', path: '/agent-details', protected: true }
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("adminToken");
+    // 2. CHANGE THIS: Clear the correct keys
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("user");
+    
     navigate("/login");
+    // 3. ADD THIS: Force a refresh so the Navbar state updates immediately
+    window.location.reload(); 
   };
 
+  // ... rest of your return code remains the same
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
 

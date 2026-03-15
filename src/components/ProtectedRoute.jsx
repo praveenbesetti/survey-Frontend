@@ -1,11 +1,6 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet } from 'react-router-dom';
 
 export const ProtectedRoute = () => {
-  const token = localStorage.getItem("adminToken");
-
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Outlet />;
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
