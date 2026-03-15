@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useMemo } from "react"; // Added useMemo here
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
     Card, Table, Tag, Divider, Typography, Row, Col, 
-    Select, Button, Spin, message, Statistic, Space, Input // Added Input here
+    Select, Button, message, Statistic, Space, Input
 } from "antd";
 import {
     BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import {
-    TeamOutlined, EnvironmentOutlined, FileTextOutlined,
-    DollarOutlined, ReloadOutlined, SearchOutlined
+    EnvironmentOutlined, ReloadOutlined, SearchOutlined
 } from "@ant-design/icons";
 import { API_BASE } from "../url";
 
@@ -71,15 +70,15 @@ const ExpandedDashboard = ({ record }) => {
         .sort((a, b) => b.value - a.value);
 
     return (
-        <div style={{ padding: '24px', background: '#fafafa', borderRadius: '12px', border: '1px solid #e8e8e8' }}>
+        <div style={{ padding: '14px', background: '#fafafa', borderRadius: '12px' }}>
             <Title level={5} style={{ marginBottom: 20 }}>
-                📊 Detailed Resource Consumption: <Tag color="blue" style={{ fontSize: '14px' }}>{record.location}</Tag>
+                📊 Detailed Resource Consumption: <Tag color="blue">{record.location}</Tag>
             </Title>
             
             <Row gutter={[24, 24]}>
                 <Col span={24}>
                     <Card title="Total Volume by Item" size="small" bordered={false}>
-                        <ResponsiveContainer width="100%" height={350}>
+                        <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={chartData} margin={{ bottom: 60, top: 20 }}>
                                 <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} fontSize={11} stroke="#888" />
                                 <YAxis tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val} />
@@ -107,21 +106,21 @@ const ExpandedDashboard = ({ record }) => {
                             title={`${formatLabel(category)} Split`}
                             style={{ textAlign: 'center', borderRadius: '8px' }}
                         >
-                            <ResponsiveContainer width="100%" height={280}>
+                            <ResponsiveContainer width="100%" height={220}>
                                 <PieChart>
                                     <Pie 
                                         data={values} 
                                         dataKey="percent" 
                                         nameKey="value" 
-                                        outerRadius={65} 
+                                        outerRadius={55} 
                                         label={({ percent }) => `${(percent <= 1 ? percent * 100 : percent).toFixed(1)}%`}
                                     >
                                         {values.map((_, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Tooltip formatter={(value, name) => [`${(value <= 1 ? value * 100 : value).toFixed(1)}%`, `Category: ${name}`]} />
-                                    <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                                    <Tooltip formatter={(value) => [`${(value <= 1 ? value * 100 : value).toFixed(1)}%`]} />
+                                    <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '10px' }} />
                                 </PieChart>
                             </ResponsiveContainer>
                         </Card>
@@ -134,7 +133,8 @@ const ExpandedDashboard = ({ record }) => {
 
 export const Admin = () => {
     const [filters, setFilters] = useState({ state: "", district: "", mandal: "" });
-    const [tableSearch, setTableSearch] = useState(""); // Search state
+    const [tableSearch, setTableSearch] = useState("");
+    const [selectedRecord, setSelectedRecord] = useState(null);
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [mandals, setMandals] = useState([]);
@@ -174,6 +174,7 @@ export const Admin = () => {
     const fetchData = async () => {
         if (!filters.state) return message.warning("Please select a state");
         setLoading(true);
+        setSelectedRecord(null); // Clear selected record on new search
         try {
             const query = new URLSearchParams(
                 Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
@@ -194,9 +195,9 @@ export const Admin = () => {
         setMandals([]);
         setData([]);
         setTableSearch("");
+        setSelectedRecord(null);
     };
 
-    // Filter Logic
     const filteredData = useMemo(() => {
         return data.filter(item => 
             item.location.toLowerCase().includes(tableSearch.toLowerCase())
@@ -204,7 +205,6 @@ export const Admin = () => {
     }, [data, tableSearch]);
 
     const totalSurveys = data.reduce((acc, cur) => acc + cur.surveyCount, 0);
-    const totalFamilies = data.reduce((acc, cur) => acc + (cur.familyMembers || 0), 0);
     const totalSpending = data.reduce((acc, cur) => acc + (cur.monthlySpending || 0), 0);
 
     const columns = [
@@ -226,103 +226,124 @@ export const Admin = () => {
         }
     ];
 
-  return (
-    <div style={{ 
-        height: '100vh', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        background: '#f0f2f5', 
-        overflow: 'hidden' 
-    }}>
-        {/* FIXED HEADER SECTION */}
-        <div style={{ padding: '20px 24px 0 24px', flexShrink: 0 }}>
-            <Title level={3} style={{ margin: '0 0 16px 0' }}>📊 Analytics Center</Title>
+    return (
+        <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#f0f2f5', overflow: 'hidden' }}>
+            {/* FIXED HEADER AND FILTERS */}
+            <div style={{ padding: '20px 24px 0 24px', flexShrink: 0, overflowY: 'auto', maxHeight: '70vh' }}>
+                <Title level={3}>📊 Analytics Center</Title>
 
-            <Card size="small" style={{ marginBottom: 12, borderRadius: 12 }}>
-                <Row gutter={[12, 12]} align="bottom">
-                    <Col flex="1">
-                        <Text type="secondary" style={{ fontSize: 10 }}>STATE</Text>
-                        <Select placeholder="State" style={{ width: '100%' }} loading={geoLoading.state} onChange={handleStateChange} value={filters.state || undefined}>
-                            {states.map(s => <Select.Option key={s._id} value={s._id}>{s.name}</Select.Option>)}
-                        </Select>
+                <Card size="small" style={{ marginBottom: 12, borderRadius: 12 }}>
+                    <Row gutter={[12, 12]} align="bottom">
+                        <Col flex="1">
+                            <Text type="secondary" style={{ fontSize: 10 }}>STATE</Text>
+                            <Select 
+                                showSearch 
+                                optionFilterProp="children" 
+                                placeholder="State" 
+                                style={{ width: '100%' }} 
+                                loading={geoLoading.state} 
+                                onChange={handleStateChange} 
+                                value={filters.state || undefined}
+                            >
+                                {states.map(s => <Select.Option key={s._id} value={s._id}>{s.name}</Select.Option>)}
+                            </Select>
+                        </Col>
+                        <Col flex="1">
+                            <Text type="secondary" style={{ fontSize: 10 }}>DISTRICT</Text>
+                            <Select 
+                                showSearch 
+                                optionFilterProp="children" 
+                                disabled={!filters.state} 
+                                placeholder="District" 
+                                style={{ width: '100%' }} 
+                                loading={geoLoading.dist} 
+                                onChange={handleDistrictChange} 
+                                value={filters.district || undefined}
+                            >
+                                {districts.map(d => <Select.Option key={d._id} value={d._id}>{d.name}</Select.Option>)}
+                            </Select>
+                        </Col>
+                        <Col flex="1">
+                            <Text type="secondary" style={{ fontSize: 10 }}>MANDAL</Text>
+                            <Select 
+                                showSearch 
+                                optionFilterProp="children" 
+                                disabled={!filters.district} 
+                                placeholder="Mandal" 
+                                style={{ width: '100%' }} 
+                                loading={geoLoading.mandal} 
+                                onChange={(v, o) => setFilters(prev => ({ ...prev, mandal: o.children }))} 
+                                value={filters.mandal || undefined}
+                            >
+                                {mandals.map(m => <Select.Option key={m._id} value={m._id}>{m.name}</Select.Option>)}
+                            </Select>
+                        </Col>
+                        <Col>
+                            <Space>
+                                <Button type="primary" icon={<SearchOutlined />} onClick={fetchData} loading={loading}>Search</Button>
+                                <Button icon={<ReloadOutlined />} onClick={resetFilters}>Reset</Button>
+                            </Space>
+                        </Col>
+                    </Row>
+                </Card>
+
+                {/* DYNAMIC ANALYTICS SECTION - DISPLAYED ABOVE TABLE WHEN ROW IS CLICKED */}
+                {selectedRecord && (
+                    <div style={{ marginBottom: 20 }}>
+                        <Card 
+                            title={<span>📊 Analytics Summary: <Text type="primary">{selectedRecord.location}</Text></span>}
+                            extra={<Button type="text" danger onClick={() => setSelectedRecord(null)}>Close X</Button>}
+                            style={{ borderRadius: 12, border: '1px solid #1890ff' }}
+                            bodyStyle={{ padding: 10 }}
+                        >
+                            <ExpandedDashboard record={selectedRecord} />
+                        </Card>
+                    </div>
+                )}
+
+                {/* GLOBAL STATISTICS */}
+                <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
+                    <Col span={8}>
+                        <Card size="small" bordered={false}><Statistic title="Target Locations" value={filteredData.length} /></Card>
                     </Col>
-                    <Col flex="1">
-                        <Text type="secondary" style={{ fontSize: 10 }}>DISTRICT</Text>
-                        <Select showSearch disabled={!filters.state} placeholder="District" style={{ width: '100%' }} loading={geoLoading.dist} onChange={handleDistrictChange} value={filters.district || undefined}>
-                            {districts.map(d => <Select.Option key={d._id} value={d._id}>{d.name}</Select.Option>)}
-                        </Select>
+                    <Col span={8}>
+                        <Card size="small" bordered={false}><Statistic title="Total Collected" value={totalSurveys} /></Card>
                     </Col>
-                    <Col flex="1">
-                        <Text type="secondary" style={{ fontSize: 10 }}>MANDAL</Text>
-                        <Select showSearch disabled={!filters.district} placeholder="Mandal" style={{ width: '100%' }} loading={geoLoading.mandal} onChange={(v, o) => setFilters(prev => ({ ...prev, mandal: o.children }))} value={filters.mandal || undefined}>
-                            {mandals.map(m => <Select.Option key={m._id} value={m._id}>{m.name}</Select.Option>)}
-                        </Select>
-                    </Col>
-                    <Col>
-                        <Space>
-                            <Button type="primary" icon={<SearchOutlined />} onClick={fetchData} loading={loading}>Search</Button>
-                            <Button icon={<ReloadOutlined />} onClick={resetFilters}>Reset</Button>
-                        </Space>
+                    <Col span={8}>
+                        <Card size="small" bordered={false}><Statistic title="Economic Impact" value={totalSpending} suffix="INR" /></Card>
                     </Col>
                 </Row>
-            </Card>
+            </div>
 
-            <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
-                <Col span={6}>
-                    <Card size="small" bordered={false} bodyStyle={{ padding: '8px 12px' }}>
-                        <Statistic title={<Text style={{ fontSize: 11 }}>Locations</Text>} value={filteredData.length} valueStyle={{ fontSize: 18, fontWeight: 'bold', color: '#1890ff' }} />
-                    </Card>
-                </Col>
-                <Col span={6}>
-                    <Card size="small" bordered={false} bodyStyle={{ padding: '8px 12px' }}>
-                        <Statistic title={<Text style={{ fontSize: 11 }}>Total Surveys</Text>} value={totalSurveys} valueStyle={{ fontSize: 18, fontWeight: 'bold', color: '#52c41a' }} />
-                    </Card>
-                </Col>
-                <Col span={6}>
-                    <Card size="small" bordered={false} bodyStyle={{ padding: '8px 12px' }}>
-                        <Statistic title={<Text style={{ fontSize: 11 }}>People Reach</Text>} value={totalFamilies} valueStyle={{ fontSize: 18, fontWeight: 'bold', color: '#fa8c16' }} />
-                    </Card>
-                </Col>
-                <Col span={6}>
-                    <Card size="small" bordered={false} bodyStyle={{ padding: '8px 12px' }}>
-                        <Statistic title={<Text style={{ fontSize: 11 }}>Expenditure</Text>} value={totalSpending} suffix={<small style={{fontSize: 10}}>INR</small>} valueStyle={{ fontSize: 18, fontWeight: 'bold', color: '#722ed1' }} />
-                    </Card>
-                </Col>
-            </Row>
-
-            {/* SEARCH INPUT BAR - ADDED HERE */}
-            <div style={{ marginBottom: 12 }}>
-                <Input 
-                    placeholder="Quick search location name..." 
-                    prefix={<SearchOutlined />} 
-                    allowClear
-                    value={tableSearch}
-                    onChange={e => setTableSearch(e.target.value)}
-                />
+            {/* TABLE SECTION */}
+            <div style={{ flex: 1, padding: '0 24px 24px 24px', overflow: 'hidden' }}>
+                <Card bodyStyle={{ padding: 0 }} style={{ height: '100%', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ padding: 12 }}>
+                        <Input 
+                            placeholder="Quick search location in table..." 
+                            prefix={<SearchOutlined />} 
+                            allowClear
+                            value={tableSearch}
+                            onChange={e => setTableSearch(e.target.value)}
+                        />
+                    </div>
+                    <Table
+                        rowKey="location"
+                        columns={columns}
+                        dataSource={filteredData}
+                        loading={loading}
+                        onRow={(record) => ({
+                            onClick: () => setSelectedRecord(record),
+                            style: { 
+                                cursor: 'pointer', 
+                                background: selectedRecord?.location === record.location ? '#e6f7ff' : 'inherit' 
+                            }
+                        })}
+                        pagination={{ pageSize: 20, size: 'small' }}
+                        scroll={{ y: 'calc(100vh - 500px)' }}
+                    />
+                </Card>
             </div>
         </div>
-
-        {/* SCROLLABLE DATA SECTION */}
-        <div style={{ flex: 1, padding: '0 24px 24px 24px', overflow: 'hidden' }}>
-            <Card bodyStyle={{ padding: 0 }} style={{ height: '100%', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <Table
-                    rowKey="location"
-                    columns={columns}
-                    dataSource={filteredData} // Using filteredData here
-                    loading={loading}
-                    expandable={{
-                        expandedRowRender: (record) => <ExpandedDashboard record={record} />,
-                        expandRowByClick: true
-                    }}
-                    pagination={{ 
-                        pageSize: 20, 
-                        size: 'small',
-                        showSizeChanger: false 
-                    }}
-                    scroll={{ y: 'calc(100vh - 410px)' }} // Offset adjusted for search bar
-                />
-            </Card>
-        </div>
-    </div>
-  );
+    );
 };
