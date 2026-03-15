@@ -11,7 +11,7 @@ import { API_BASE } from './url';
 import 'antd/dist/reset.css';
 
 axios.defaults.baseURL = API_BASE; // Set your API base URL here
-axios.defaults.withCredentials = true;
+
 function AppLayout() {
   const location = useLocation();
   const isLoginPage = location.pathname === "/login";
