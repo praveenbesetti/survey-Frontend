@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button, Form, Input, Card, Alert, Row, Col, Typography, Divider } from 'antd';
-import { 
-    UserOutlined, 
-    LockOutlined, 
-    ShoppingOutlined, 
+import {
+    UserOutlined,
+    LockOutlined,
+    ShoppingOutlined,
     ArrowLeftOutlined,
     SafetyCertificateOutlined,
-    ThunderboltOutlined 
+    ThunderboltOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,7 +20,7 @@ const Login = () => {
     const floatingVeg = ['🥬', '🍅', '🥕', '🥦', '🧅', '🫑', '🌽', '🥒'];
 
     // Flow State
-    const [mode, setMode] = useState('login'); 
+    const [mode, setMode] = useState('login');
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -31,7 +31,7 @@ const Login = () => {
 
 
     // Green Team Colors
-    const ACCENT_GREEN = '#0c831f'; 
+    const ACCENT_GREEN = '#0c831f';
 
     const onFinish = async (values) => {
         setFpError('');
@@ -40,8 +40,8 @@ const Login = () => {
             const res = await axios.post('/web-auth/login', values);
             if (res.data && res.data.success) {
                 const { data } = res.data;
-                localStorage.setItem('user', JSON.stringify(data));
-                localStorage.setItem('isAuthenticated', 'true');
+                sessionStorage.setItem('user', JSON.stringify(data));
+                sessionStorage.setItem('isAuthenticated', 'true');
                 navigate('/', { replace: true });
             }
         } catch (err) {
@@ -106,7 +106,7 @@ const Login = () => {
 
             <div style={{ width: '100%', maxWidth: '1000px', zIndex: 10, padding: '20px' }}>
                 <Row gutter={[40, 40]} align="middle" justify="center">
-                    
+
                     {/* Left side - Magic Branding */}
                     <Col xs={0} md={12}>
                         <div style={{ animation: 'fadeInLeft 0.8s ease-out' }}>
@@ -127,8 +127,8 @@ const Login = () => {
 
                     {/* Right side - Glass Card Login */}
                     <Col xs={24} md={10}>
-                        <Card className="glass-card" style={{ 
-                            borderRadius: '24px', 
+                        <Card className="glass-card" style={{
+                            borderRadius: '24px',
                             border: '1px solid rgba(12, 131, 31, 0.1)',
                             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
                             background: 'rgba(255, 255, 255, 0.9)'
@@ -145,8 +145,8 @@ const Login = () => {
                             {fpError && <Alert type="error" message={fpError} showIcon style={{ marginBottom: 20 }} />}
 
                             <Form form={form} layout="vertical" size="large" onFinish={
-                                mode === 'login' ? onFinish : mode === 'email' ? handleSendEmail : 
-                                mode === 'otp' ? handleVerifyOtp : handleResetPassword
+                                mode === 'login' ? onFinish : mode === 'email' ? handleSendEmail :
+                                    mode === 'otp' ? handleVerifyOtp : handleResetPassword
                             }>
                                 {mode === 'login' && (
                                     <>
@@ -194,7 +194,7 @@ const Login = () => {
                                     </>
                                 )}
                             </Form>
-                            
+
                             <Divider>
                                 <SafetyCertificateOutlined style={{ color: ACCENT_GREEN }} /> HariyaliMart Security
                             </Divider>

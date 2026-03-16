@@ -10,7 +10,7 @@ export function Navbar() {
   const navigate = useNavigate();
 
   // 1. CHANGE THIS: Look for the key your Login page actually sets
-  const isLoggedIn = localStorage.getItem("isAuthenticated") === "true";
+  const isLoggedIn = sessionStorage.getItem("isAuthenticated") === "true";
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -21,20 +21,20 @@ export function Navbar() {
     { name: 'Agent Details', path: '/agent-details', protected: true }
   ];
 
-const handleLogout = async () => {
-  try {
-     localStorage.removeItem("user");          
-    localStorage.removeItem("isAuthenticated"); 
+  const handleLogout = async () => {
+    try {
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("isAuthenticated");
     
-    navigate("/login");
-    window.location.reload(); 
-    // Call your new clean logout API
-    // await axios.post('/web-auth/logout');
-  } catch (err) {
-    console.error("Logout API failed, clearing local data anyway.");
-  } 
-  
-};
+     sessionStorage.removeItem("token");
+      navigate("/login");
+      window.location.reload();
+
+    } catch (err) {
+      console.error("Logout API failed, clearing local data anyway.");
+    }
+
+  };
 
   // ... rest of your return code remains the same
   return (
@@ -64,16 +64,16 @@ const handleLogout = async () => {
                   key={link.name}
                   to={link.path}
                   className={`text-sm font-medium transition-all duration-300 hover:text-accent-green relative group ${location.pathname === link.path
-                      ? 'text-accent-green'
-                      : 'text-text-secondary'
+                    ? 'text-accent-green'
+                    : 'text-text-secondary'
                     }`}
                 >
                   {link.name}
 
                   <span
                     className={`absolute -bottom-1 left-0 w-full h-0.5 bg-accent-green transform origin-left transition-transform duration-300 ${location.pathname === link.path
-                        ? 'scale-x-100'
-                        : 'scale-x-0 group-hover:scale-x-100'
+                      ? 'scale-x-100'
+                      : 'scale-x-0 group-hover:scale-x-100'
                       }`}
                   />
                 </Link>
@@ -142,8 +142,8 @@ const handleLogout = async () => {
                   key={link.name}
                   to={link.path}
                   className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === link.path
-                      ? 'text-accent-green bg-accent-green/10'
-                      : 'text-text-secondary hover:text-accent-green hover:bg-gray-50'
+                    ? 'text-accent-green bg-accent-green/10'
+                    : 'text-text-secondary hover:text-accent-green hover:bg-gray-50'
                     }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
