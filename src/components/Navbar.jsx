@@ -86,7 +86,7 @@ const handleLogout = async () => {
           <div className="flex items-center space-x-4">
 
             {/* Cart */}
-            <Link
+            {/* <Link
               to="/cart"
               className="relative p-2 text-text-secondary hover:text-accent-green transition-colors"
             >
@@ -97,7 +97,7 @@ const handleLogout = async () => {
                   {cartCount}
                 </span>
               )}
-            </Link>
+            </Link> */}
 
             {/* Logout Desktop */}
             {isLoggedIn && (

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
-    Card, Table, Tag, Divider, Typography, Row, Col, 
+    Card, Table, Tag, Divider, Typography, Row, Col,
     Select, Button, message, Statistic, Space, Input
 } from "antd";
 import {
     BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import {
-    EnvironmentOutlined, ReloadOutlined, SearchOutlined
+    EnvironmentOutlined, ReloadOutlined, SearchOutlined, DownloadOutlined
 } from "@ant-design/icons";
 import { API_BASE } from "../url";
 
@@ -63,9 +63,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 const ExpandedDashboard = ({ record }) => {
     const totals = Object.entries(record.totals || {});
     const chartData = totals
-        .map(([key, value]) => ({ 
-            name: formatLabel(key), 
-            value: Number(value) 
+        .map(([key, value]) => ({
+            name: formatLabel(key),
+            value: Number(value)
         }))
         .sort((a, b) => b.value - a.value);
 
@@ -74,14 +74,14 @@ const ExpandedDashboard = ({ record }) => {
             <Title level={5} style={{ marginBottom: 20 }}>
                 📊 Detailed Resource Consumption: <Tag color="blue">{record.location}</Tag>
             </Title>
-            
+
             <Row gutter={[24, 24]}>
                 <Col span={24}>
                     <Card title="Total Volume by Item" size="small" bordered={false}>
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={chartData} margin={{ bottom: 60, top: 20 }}>
                                 <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} fontSize={11} stroke="#888" />
-                                <YAxis tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val} />
+                                <YAxis tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val} />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                     {chartData.map((entry, index) => {
@@ -95,24 +95,24 @@ const ExpandedDashboard = ({ record }) => {
                     </Card>
                 </Col>
             </Row>
-            
+
             <Divider orientation="left">Demographics & Distributions</Divider>
-            
+
             <Row gutter={[16, 16]}>
                 {Object.entries(record.distributions || {}).map(([category, values]) => (
                     <Col xs={24} md={8} key={category}>
-                        <Card 
-                            size="small" 
+                        <Card
+                            size="small"
                             title={`${formatLabel(category)} Split`}
                             style={{ textAlign: 'center', borderRadius: '8px' }}
                         >
                             <ResponsiveContainer width="100%" height={220}>
                                 <PieChart>
-                                    <Pie 
-                                        data={values} 
-                                        dataKey="percent" 
-                                        nameKey="value" 
-                                        outerRadius={55} 
+                                    <Pie
+                                        data={values}
+                                        dataKey="percent"
+                                        nameKey="value"
+                                        outerRadius={55}
                                         label={({ percent }) => `${(percent <= 1 ? percent * 100 : percent).toFixed(1)}%`}
                                     >
                                         {values.map((_, index) => (
@@ -130,6 +130,7 @@ const ExpandedDashboard = ({ record }) => {
         </div>
     );
 };
+
 
 export const Admin = () => {
     const [filters, setFilters] = useState({ state: "", district: "", mandal: "" });
@@ -199,7 +200,7 @@ export const Admin = () => {
     };
 
     const filteredData = useMemo(() => {
-        return data.filter(item => 
+        return data.filter(item =>
             item.location.toLowerCase().includes(tableSearch.toLowerCase())
         );
     }, [data, tableSearch]);
@@ -225,7 +226,57 @@ export const Admin = () => {
             render: val => <Text strong>₹{val?.toLocaleString()}</Text>
         }
     ];
+    const exportToCSV = () => {
+        if (!filteredData || filteredData.length === 0) {
+            return message.warning("No data to export. Please search first.");
+        }
 
+        const csvRows = filteredData.map(item => {
+            const row = {
+                "Location": item.location,
+                "Survey Count": item.surveyCount,
+                // Added INR suffix and formatted the number
+                "Total Spending": `${(item.monthlySpending || 0).toLocaleString()} INR`,
+            };
+
+            if (item.totals) {
+                Object.entries(item.totals).forEach(([key, val]) => {
+                    const config = itemConfig[key];
+                    const label = config ? config.label : formatLabel(key);
+
+                    // Keep the unit beside the value as requested
+                    const unit = config?.unit ? ` ${config.unit}` : "";
+                    row[label] = `${val}${unit}`;
+                });
+            }
+            return row;
+        });
+
+        const headers = Object.keys(csvRows[0]);
+
+        const csvContent = [
+            headers.join(','),
+            ...csvRows.map(row =>
+                headers.map(header => {
+                    const cellValue = row[header] ?? "0";
+                    return `"${cellValue}"`;
+                }).join(',')
+            )
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+
+        const fileName = `HariyaliMart_${filters.mandal || filters.district || filters.state || 'Analytics'}.csv`;
+        link.setAttribute("download", fileName);
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#f0f2f5', overflow: 'hidden' }}>
             {/* FIXED HEADER AND FILTERS */}
@@ -236,13 +287,13 @@ export const Admin = () => {
                     <Row gutter={[12, 12]} align="bottom">
                         <Col flex="1">
                             <Text type="secondary" style={{ fontSize: 10 }}>STATE</Text>
-                            <Select 
-                                showSearch 
-                                optionFilterProp="children" 
-                                placeholder="State" 
-                                style={{ width: '100%' }} 
-                                loading={geoLoading.state} 
-                                onChange={handleStateChange} 
+                            <Select
+                                showSearch
+                                optionFilterProp="children"
+                                placeholder="State"
+                                style={{ width: '100%' }}
+                                loading={geoLoading.state}
+                                onChange={handleStateChange}
                                 value={filters.state || undefined}
                             >
                                 {states.map(s => <Select.Option key={s._id} value={s._id}>{s.name}</Select.Option>)}
@@ -250,14 +301,14 @@ export const Admin = () => {
                         </Col>
                         <Col flex="1">
                             <Text type="secondary" style={{ fontSize: 10 }}>DISTRICT</Text>
-                            <Select 
-                                showSearch 
-                                optionFilterProp="children" 
-                                disabled={!filters.state} 
-                                placeholder="District" 
-                                style={{ width: '100%' }} 
-                                loading={geoLoading.dist} 
-                                onChange={handleDistrictChange} 
+                            <Select
+                                showSearch
+                                optionFilterProp="children"
+                                disabled={!filters.state}
+                                placeholder="District"
+                                style={{ width: '100%' }}
+                                loading={geoLoading.dist}
+                                onChange={handleDistrictChange}
                                 value={filters.district || undefined}
                             >
                                 {districts.map(d => <Select.Option key={d._id} value={d._id}>{d.name}</Select.Option>)}
@@ -265,14 +316,14 @@ export const Admin = () => {
                         </Col>
                         <Col flex="1">
                             <Text type="secondary" style={{ fontSize: 10 }}>MANDAL</Text>
-                            <Select 
-                                showSearch 
-                                optionFilterProp="children" 
-                                disabled={!filters.district} 
-                                placeholder="Mandal" 
-                                style={{ width: '100%' }} 
-                                loading={geoLoading.mandal} 
-                                onChange={(v, o) => setFilters(prev => ({ ...prev, mandal: o.children }))} 
+                            <Select
+                                showSearch
+                                optionFilterProp="children"
+                                disabled={!filters.district}
+                                placeholder="Mandal"
+                                style={{ width: '100%' }}
+                                loading={geoLoading.mandal}
+                                onChange={(v, o) => setFilters(prev => ({ ...prev, mandal: o.children }))}
                                 value={filters.mandal || undefined}
                             >
                                 {mandals.map(m => <Select.Option key={m._id} value={m._id}>{m.name}</Select.Option>)}
@@ -282,15 +333,23 @@ export const Admin = () => {
                             <Space>
                                 <Button type="primary" icon={<SearchOutlined />} onClick={fetchData} loading={loading}>Search</Button>
                                 <Button icon={<ReloadOutlined />} onClick={resetFilters}>Reset</Button>
+                                <Button
+                                    size="primary"
+                                    icon={<DownloadOutlined />}
+                                    style={{ backgroundColor: 'green', color: '#fff', border: 'none' }}
+                                    onClick={exportToCSV}
+                                    disabled={data.length === 0}
+                                >
+                                    Export CSV
+                                </Button>
                             </Space>
                         </Col>
                     </Row>
                 </Card>
 
-                {/* DYNAMIC ANALYTICS SECTION - DISPLAYED ABOVE TABLE WHEN ROW IS CLICKED */}
                 {selectedRecord && (
                     <div style={{ marginBottom: 20 }}>
-                        <Card 
+                        <Card
                             title={<span>📊 Analytics Summary: <Text type="primary">{selectedRecord.location}</Text></span>}
                             extra={<Button type="text" danger onClick={() => setSelectedRecord(null)}>Close X</Button>}
                             style={{ borderRadius: 12, border: '1px solid #1890ff' }}
@@ -319,9 +378,9 @@ export const Admin = () => {
             <div style={{ flex: 1, padding: '0 24px 24px 24px', overflow: 'hidden' }}>
                 <Card bodyStyle={{ padding: 0 }} style={{ height: '100%', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ padding: 12 }}>
-                        <Input 
-                            placeholder="Quick search location in table..." 
-                            prefix={<SearchOutlined />} 
+                        <Input
+                            placeholder="Quick search location in table..."
+                            prefix={<SearchOutlined />}
                             allowClear
                             value={tableSearch}
                             onChange={e => setTableSearch(e.target.value)}
@@ -334,9 +393,9 @@ export const Admin = () => {
                         loading={loading}
                         onRow={(record) => ({
                             onClick: () => setSelectedRecord(record),
-                            style: { 
-                                cursor: 'pointer', 
-                                background: selectedRecord?.location === record.location ? '#e6f7ff' : 'inherit' 
+                            style: {
+                                cursor: 'pointer',
+                                background: selectedRecord?.location === record.location ? '#e6f7ff' : 'inherit'
                             }
                         })}
                         pagination={{ pageSize: 20, size: 'small' }}
