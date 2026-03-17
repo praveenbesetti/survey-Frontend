@@ -14,9 +14,9 @@ export const protectedRoutes = [
     { path: "/", element: <Landing /> },
     { path: "/categories", element: <Categories /> },
     { path: "/shop", element: <Shop /> },
-    { path: "/cart", element: <Cart /> },
-    { path: "/checkout", element: <Checkout /> },
-    { path: "/survey", element: <SurveyForm /> },
+    // { path: "/cart", element: <Cart /> },
+    // { path: "/checkout", element: <Checkout /> },
+    // { path: "/survey", element: <SurveyForm /> },
 
     // Partner/Admin Specific Dashboards
     { path: "/admin-Dashboard", element: <Admin /> },

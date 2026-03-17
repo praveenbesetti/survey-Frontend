@@ -34,7 +34,6 @@ const itemConfig = {
     detergent: { label: "Detergent", unit: "Kg", icon: "🧺", color: "#06b6d4" },
     dishWash: { label: "Dish Wash", unit: "Litre", icon: "🍽️", color: "#14b8a6" },
     toothpaste: { label: "Tooth Paste", unit: "Pcs", icon: "🪥", color: "#6366f1" },
-    other: { label: "Other", unit: "", icon: "📦", color: "#999999" }
 };
 
 const formatLabel = (key) => {
@@ -226,57 +225,59 @@ export const Admin = () => {
             render: val => <Text strong>₹{val?.toLocaleString()}</Text>
         }
     ];
-    const exportToCSV = () => {
-        if (!filteredData || filteredData.length === 0) {
-            return message.warning("No data to export. Please search first.");
+  const exportToCSV = () => {
+    if (!filteredData || filteredData.length === 0) {
+        return message.warning("No data to export. Please search first.");
+    }
+
+    const csvRows = filteredData.map(item => {
+        // We use a helper to ensure strings have some leading space for visual alignment
+        const row = {
+            "Location": item.location,
+            "Survey Count": item.surveyCount,
+            "Total Spending": `${(item.monthlySpending || 0).toLocaleString()} INR`,
+        };
+
+        if (item.totals) {
+            Object.entries(item.totals).forEach(([key, val]) => {
+                const config = itemConfig[key];
+                const label = config ? config.label : formatLabel(key);
+                const unit = config?.unit ? ` ${config.unit}` : "";
+                
+                // Pushing the value to the right visually by adding spaces isn't standard 
+                // in CSV, but we ensure the number comes first.
+                row[label] = `${val}${unit}`;
+            });
         }
+        return row;
+    });
 
-        const csvRows = filteredData.map(item => {
-            const row = {
-                "Location": item.location,
-                "Survey Count": item.surveyCount,
-                // Added INR suffix and formatted the number
-                "Total Spending": `${(item.monthlySpending || 0).toLocaleString()} INR`,
-            };
+    const headers = Object.keys(csvRows[0]);
 
-            if (item.totals) {
-                Object.entries(item.totals).forEach(([key, val]) => {
-                    const config = itemConfig[key];
-                    const label = config ? config.label : formatLabel(key);
+    const csvContent = [
+        headers.join(','), 
+        ...csvRows.map(row => 
+            headers.map(header => {
+                const cellValue = row[header] ?? "0";
+                // Standard CSV format
+                return `"${cellValue}"`;
+            }).join(',')
+        )
+    ].join('\n');
 
-                    // Keep the unit beside the value as requested
-                    const unit = config?.unit ? ` ${config.unit}` : "";
-                    row[label] = `${val}${unit}`;
-                });
-            }
-            return row;
-        });
-
-        const headers = Object.keys(csvRows[0]);
-
-        const csvContent = [
-            headers.join(','),
-            ...csvRows.map(row =>
-                headers.map(header => {
-                    const cellValue = row[header] ?? "0";
-                    return `"${cellValue}"`;
-                }).join(',')
-            )
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-
-        const fileName = `HariyaliMart_${filters.mandal || filters.district || filters.state || 'Analytics'}.csv`;
-        link.setAttribute("download", fileName);
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    
+    const fileName = `HariyaliMart_${filters.mandal || filters.district || filters.state || 'Analytics'}.csv`;
+    link.setAttribute("download", fileName);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#f0f2f5', overflow: 'hidden' }}>
             {/* FIXED HEADER AND FILTERS */}

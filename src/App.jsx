@@ -3,36 +3,40 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { ParticleBackground } from './components/ParticleBackground';
 import { Navbar } from './components/Navbar';
-import  Login  from "./pages/Login";
+import Login from "./pages/Login";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { protectedRoutes } from './routes/routesConfig';
 import axios from 'axios';
 import { API_BASE } from './url';
 import 'antd/dist/reset.css';
+import { Shop } from './pages/Shop';
+import { Landing } from './pages/Landing';
 
-axios.defaults.baseURL = API_BASE; // Set your API base URL here
-
+axios.defaults.baseURL = API_BASE;
 function AppLayout() {
   const location = useLocation();
-  const isLoginPage = location.pathname === "/login";
+  
+  // Use exact matching
+  const isLoginPage = location.pathname.toLowerCase() === "/login";
   const isLandingPage = location.pathname === "/";
 
   return (
-    <div className="relative min-h-screen bg-bg-primary text-text-primary font-inter overflow-x-hidden">
-      {/* Background & Nav Logic */}
+    <div className="relative min-h-screen bg-white">
+      {/* Background only on exact home */}
       {isLandingPage && <ParticleBackground />}
+      
+      {/* Show Navbar on everything except Login */}
       {!isLoginPage && <Navbar />}
 
-      {/* Global Spacing: If not login, push content down 80px to clear Navbar */}
-      <main className={`relative z-10 ${!isLoginPage ? 'pt-20 px-4 pb-10' : ''}`}>
+      <main className={`${!isLoginPage ? 'pt-20 px-4 pb-10' : ''}`}>
         <Routes>
-          {/* Public Route */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/shop" element={<Shop />} />
           <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes mapped from config */}
           <Route element={<ProtectedRoute />}>
-            {protectedRoutes.map((route, index) => (
-              <Route key={index} path={route.path} element={route.element} />
+            {protectedRoutes.map((route, idx) => (
+              <Route key={idx} path={route.path} element={route.element} />
             ))}
           </Route>
         </Routes>

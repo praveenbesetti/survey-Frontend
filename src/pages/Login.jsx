@@ -82,9 +82,11 @@ const Login = () => {
         setFpError(''); setFpMessage('');
     };
 
-    useEffect(() => {
-        if (localStorage.getItem('isAuthenticated') === 'true') navigate('/', { replace: true });
-    }, [navigate]);
+useEffect(() => {
+    if (sessionStorage.getItem('isAuthenticated') === 'true') {
+        navigate('/', { replace: true });
+    }
+}, [navigate]);
 
     return (
         <div style={{
