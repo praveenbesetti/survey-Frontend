@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
     Card, Table, Tag, Divider, Typography, Row, Col,
-    Select, Button, message, Statistic, Space, Input
+    Select, Button, message, Statistic, Space, Input,Modal
 } from "antd";
 import {
     BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
@@ -278,132 +278,145 @@ export const Admin = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 };
-    return (
-        <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#f0f2f5', overflow: 'hidden' }}>
-            {/* FIXED HEADER AND FILTERS */}
-            <div style={{ padding: '20px 24px 0 24px', flexShrink: 0, overflowY: 'auto', maxHeight: '70vh' }}>
-                <Title level={3}>📊 Analytics Center</Title>
-
-                <Card size="small" style={{ marginBottom: 12, borderRadius: 12 }}>
-                    <Row gutter={[12, 12]} align="bottom">
-                        <Col flex="1">
-                            <Text type="secondary" style={{ fontSize: 10 }}>STATE</Text>
-                            <Select
-                                showSearch
-                                optionFilterProp="children"
-                                placeholder="State"
-                                style={{ width: '100%' }}
-                                loading={geoLoading.state}
-                                onChange={handleStateChange}
-                                value={filters.state || undefined}
-                            >
-                                {states.map(s => <Select.Option key={s._id} value={s._id}>{s.name}</Select.Option>)}
-                            </Select>
-                        </Col>
-                        <Col flex="1">
-                            <Text type="secondary" style={{ fontSize: 10 }}>DISTRICT</Text>
-                            <Select
-                                showSearch
-                                optionFilterProp="children"
-                                disabled={!filters.state}
-                                placeholder="District"
-                                style={{ width: '100%' }}
-                                loading={geoLoading.dist}
-                                onChange={handleDistrictChange}
-                                value={filters.district || undefined}
-                            >
-                                {districts.map(d => <Select.Option key={d._id} value={d._id}>{d.name}</Select.Option>)}
-                            </Select>
-                        </Col>
-                        <Col flex="1">
-                            <Text type="secondary" style={{ fontSize: 10 }}>MANDAL</Text>
-                            <Select
-                                showSearch
-                                optionFilterProp="children"
-                                disabled={!filters.district}
-                                placeholder="Mandal"
-                                style={{ width: '100%' }}
-                                loading={geoLoading.mandal}
-                                onChange={(v, o) => setFilters(prev => ({ ...prev, mandal: o.children }))}
-                                value={filters.mandal || undefined}
-                            >
-                                {mandals.map(m => <Select.Option key={m._id} value={m._id}>{m.name}</Select.Option>)}
-                            </Select>
-                        </Col>
-                        <Col>
-                            <Space>
-                                <Button type="primary" icon={<SearchOutlined />} onClick={fetchData} loading={loading}>Search</Button>
-                                <Button icon={<ReloadOutlined />} onClick={resetFilters}>Reset</Button>
-                                <Button
-                                    size="primary"
-                                    icon={<DownloadOutlined />}
-                                    style={{ backgroundColor: 'green', color: '#fff', border: 'none' }}
-                                    onClick={exportToCSV}
-                                    disabled={data.length === 0}
-                                >
-                                    Export CSV
-                                </Button>
-                            </Space>
-                        </Col>
-                    </Row>
-                </Card>
-
-                {selectedRecord && (
-                    <div style={{ marginBottom: 20 }}>
-                        <Card
-                            title={<span>📊 Analytics Summary: <Text type="primary">{selectedRecord.location}</Text></span>}
-                            extra={<Button type="text" danger onClick={() => setSelectedRecord(null)}>Close X</Button>}
-                            style={{ borderRadius: 12, border: '1px solid #1890ff' }}
-                            bodyStyle={{ padding: 10 }}
-                        >
-                            <ExpandedDashboard record={selectedRecord} />
-                        </Card>
+  
+return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#f0f2f5', overflow: 'hidden' }}>
+        
+        {/* POPUP ANALYTICS SCREEN */}
+        <Modal
+            title={null} // We use the Title inside the dashboard
+            open={!!selectedRecord}
+            onCancel={() => setSelectedRecord(null)}
+            footer={null}
+            width={1100} // Extra wide for better chart visibility
+            centered
+            destroyOnClose // Clean memory when closed
+            bodyStyle={{ padding: 0, borderRadius: '12px' }}
+            closeIcon={<Button type="primary" shape="circle" danger style={{ marginTop: 10 }}>X</Button>}
+        >
+            {selectedRecord && (
+                <div style={{ maxHeight: '90vh', overflowY: 'auto', padding: '24px' }}>
+                    <ExpandedDashboard record={selectedRecord} />
+                    <div style={{ textAlign: 'right', marginTop: '16px' }}>
+                        <Button size="large" type="primary" onClick={() => setSelectedRecord(null)}>
+                            Close Analysis
+                        </Button>
                     </div>
-                )}
+                </div>
+            )}
+        </Modal>
 
-                {/* GLOBAL STATISTICS */}
-                <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
-                    <Col span={8}>
-                        <Card size="small" bordered={false}><Statistic title="Target Locations" value={filteredData.length} /></Card>
+        {/* FIXED HEADER AND FILTERS */}
+        <div style={{ padding: '20px 24px 0 24px', flexShrink: 0 }}>
+            <Title level={3}>📊 Analytics Center</Title>
+
+            <Card size="small" style={{ marginBottom: 12, borderRadius: 12 }}>
+                <Row gutter={[12, 12]} align="bottom">
+                    <Col flex="1">
+                        <Text type="secondary" style={{ fontSize: 10 }}>STATE</Text>
+                        <Select
+                            showSearch
+                            optionFilterProp="children"
+                            placeholder="State"
+                            style={{ width: '100%' }}
+                            loading={geoLoading.state}
+                            onChange={handleStateChange}
+                            value={filters.state || undefined}
+                        >
+                            {states.map(s => <Select.Option key={s._id} value={s._id}>{s.name}</Select.Option>)}
+                        </Select>
                     </Col>
-                    <Col span={8}>
-                        <Card size="small" bordered={false}><Statistic title="Total Collected" value={totalSurveys} /></Card>
+                    <Col flex="1">
+                        <Text type="secondary" style={{ fontSize: 10 }}>DISTRICT</Text>
+                        <Select
+                            showSearch
+                            optionFilterProp="children"
+                            disabled={!filters.state}
+                            placeholder="District"
+                            style={{ width: '100%' }}
+                            loading={geoLoading.dist}
+                            onChange={handleDistrictChange}
+                            value={filters.district || undefined}
+                        >
+                            {districts.map(d => <Select.Option key={d._id} value={d._id}>{d.name}</Select.Option>)}
+                        </Select>
                     </Col>
-                    <Col span={8}>
-                        <Card size="small" bordered={false}><Statistic title="Economic Impact" value={totalSpending} suffix="INR" /></Card>
+                    <Col flex="1">
+                        <Text type="secondary" style={{ fontSize: 10 }}>MANDAL</Text>
+                        <Select
+                            showSearch
+                            optionFilterProp="children"
+                            disabled={!filters.district}
+                            placeholder="Mandal"
+                            style={{ width: '100%' }}
+                            loading={geoLoading.mandal}
+                            onChange={(v, o) => setFilters(prev => ({ ...prev, mandal: o.children }))}
+                            value={filters.mandal || undefined}
+                        >
+                            {mandals.map(m => <Select.Option key={m._id} value={m._id}>{m.name}</Select.Option>)}
+                        </Select>
+                    </Col>
+                    <Col>
+                        <Space>
+                            <Button type="primary" icon={<SearchOutlined />} onClick={fetchData} loading={loading}>Search</Button>
+                            <Button icon={<ReloadOutlined />} onClick={resetFilters}>Reset</Button>
+                            <Button
+                                size="primary"
+                                icon={<DownloadOutlined />}
+                                style={{ backgroundColor: 'green', color: '#fff', border: 'none' }}
+                                onClick={exportToCSV}
+                                disabled={data.length === 0}
+                            >
+                                Export CSV
+                            </Button>
+                        </Space>
                     </Col>
                 </Row>
-            </div>
+            </Card>
 
-            {/* TABLE SECTION */}
-            <div style={{ flex: 1, padding: '0 24px 24px 24px', overflow: 'hidden' }}>
-                <Card bodyStyle={{ padding: 0 }} style={{ height: '100%', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: 12 }}>
-                        <Input
-                            placeholder="Quick search location in table..."
-                            prefix={<SearchOutlined />}
-                            allowClear
-                            value={tableSearch}
-                            onChange={e => setTableSearch(e.target.value)}
-                        />
-                    </div>
-                    <Table
-                        rowKey="location"
-                        columns={columns}
-                        dataSource={filteredData}
-                        loading={loading}
-                        onRow={(record) => ({
-                            onClick: () => setSelectedRecord(record),
-                            style: {
-                                cursor: 'pointer',
-                                background: selectedRecord?.location === record.location ? '#e6f7ff' : 'inherit'
-                            }
-                        })}
-                        pagination={{ pageSize: 20, size: 'small' }}
-                        scroll={{ y: 'calc(100vh - 500px)' }}
-                    />
-                </Card>
-            </div>
+            {/* GLOBAL STATISTICS */}
+            <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
+                <Col span={8}>
+                    <Card size="small" bordered={false}><Statistic title="Target Locations" value={filteredData.length} /></Card>
+                </Col>
+                <Col span={8}>
+                    <Card size="small" bordered={false}><Statistic title="Total Collected" value={totalSurveys} /></Card>
+                </Col>
+                <Col span={8}>
+                    <Card size="small" bordered={false}><Statistic title="Economic Impact" value={totalSpending} suffix="INR" /></Card>
+                </Col>
+            </Row>
         </div>
-    );
+
+        {/* TABLE SECTION */}
+        <div style={{ flex: 1, padding: '0 24px 24px 24px', overflow: 'hidden' }}>
+            <Card bodyStyle={{ padding: 0 }} style={{ height: '100%', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: 12 }}>
+                    <Input
+                        placeholder="Quick search location in table..."
+                        prefix={<SearchOutlined />}
+                        allowClear
+                        value={tableSearch}
+                        onChange={e => setTableSearch(e.target.value)}
+                    />
+                </div>
+                <Table
+                    rowKey="location"
+                    columns={columns}
+                    dataSource={filteredData}
+                    loading={loading}
+                    onRow={(record) => ({
+                        onClick: () => setSelectedRecord(record), // Opens the Modal
+                        style: {
+                            cursor: 'pointer',
+                            background: selectedRecord?.location === record.location ? '#e6f7ff' : 'inherit'
+                        }
+                    })}
+                    pagination={{ pageSize: 20, size: 'small' }}
+                    scroll={{ y: 'calc(100vh - 400px)' }} // Increased height since inline dashboard is gone
+                />
+            </Card>
+        </div>
+    </div>
+);
 };
