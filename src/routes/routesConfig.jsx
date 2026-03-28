@@ -8,6 +8,7 @@ import { SurveyForm } from '../pages/SurveyForm';
 import { Admin } from "../pages/admin"; // Note: ensure casing matches your file system
 import { SubAgentManager } from '../pages/SubAgentManager';
 import { AgentManager } from '../pages/agentManagement';
+import { SurveyManager } from '../pages/SurveyManager';
 
 export const protectedRoutes = [
     // Public-facing but inside HariyaliMart Portal
@@ -21,5 +22,7 @@ export const protectedRoutes = [
     // Partner/Admin Specific Dashboards
     { path: "/admin-Dashboard", element: <Admin /> },
     { path: "/sub-agent-details", element: <SubAgentManager /> },
-    { path: "/agent-details", element: <AgentManager /> }
+    { path: "/agent-details", element: <AgentManager /> },
+    {path: "/surveyManagment", element:<SurveyManager/>
+    }
 ];

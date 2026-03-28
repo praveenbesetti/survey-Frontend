@@ -19,7 +19,8 @@ export function Navbar() {
     { name: 'Login', path: '/login', hideIfLoggedIn: true },
     { name: 'Dashboard', path: '/admin-Dashboard', protected: true },
     { name: 'Sub-Agent Details', path: '/sub-agent-details', protected: true },
-    { name: 'Agent Details', path: '/agent-details', protected: true }
+    { name: 'Agent Details', path: '/agent-details', protected: true },
+    {name: 'Survey Managment', path:'/surveyManagment', protected:true},
   ];
 
   // 3. Filter Links
