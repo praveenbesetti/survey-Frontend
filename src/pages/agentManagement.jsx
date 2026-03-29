@@ -223,20 +223,16 @@ const columns = [
             if (!agent?.name) return null;
 
             const isActive = agent.active; // status flag
-            const isDeleted = agent.delete; // del flag
+           
 
             // Logic: status true & del false -> ACTIVE (Green)
-            if (isActive && !isDeleted) {
+            if (isActive ) {
                 return <Text style={{ color: '#16a34a', fontWeight: '800', fontSize: '12px' }}>ACTIVE</Text>;
             }
 
-            // Logic: status false & del false -> INACTIVE (Black)
-            if (!isActive && !isDeleted) {
-                return <Text style={{ color: '#000', fontWeight: '800', fontSize: '12px' }}>INACTIVE</Text>;
-            }
-
+           
             // Logic: status false & del true -> SUSPENDED (Red)
-            if (!isActive && isDeleted) {
+            if (!isActive ) {
                 return <Text style={{ color: '#dc2626', fontWeight: '800', fontSize: '12px' }}>SUSPENDED</Text>;
             }
 
@@ -273,11 +269,7 @@ const columns = [
                     cancelText="No"
                     icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
                 >
-                    <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined style={{ fontSize: '18px' }} />}
-                    />
+                   
                 </Popconfirm>
             </Space>
         ) : null

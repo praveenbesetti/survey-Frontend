@@ -52,7 +52,15 @@ export const SubAgentManager = () => {
             setVillages(res.data.data || res.data);
         } finally { setLoading(false); }
     };
-
+const getAvailableHouses = () => {
+        if (!activeVillage) return 0;
+        
+        const totalAssigned = getAssignedHouseholds(activeVillage);
+        const currentAgentHH = editingAgent ? (Number(editingAgent.houseHolds) || 0) : 0;
+        
+        // Available = (Total - Total Assigned) + What the current editing agent already has
+        return activeVillage.house_count - (totalAssigned - currentAgentHH);
+    };
     const filteredVillages = useMemo(() => {
         return villages.filter(v => v.name.toLowerCase().includes(searchText.toLowerCase()));
     }, [villages, searchText]);
@@ -163,6 +171,11 @@ export const SubAgentManager = () => {
                 dataIndex: 'name',
                 render: (t) => <Text style={{ color: '#000', fontWeight: '700', fontSize: '14px' }}>{t}</Text>
             },
+             {
+                title: 'SUB-AGENT ID',
+                dataIndex: 'AgentId',
+                render: (t) => <Text style={{ color: '#000', fontWeight: '700', fontSize: '14px' }}>{t}</Text>
+            },
             {
                 title: 'PHONE',
                 dataIndex: 'phone',
@@ -172,22 +185,26 @@ export const SubAgentManager = () => {
                 title: 'ASSIGNED HH',
                 dataIndex: 'houseHolds',
                 render: (t) => <Text style={{ color: '#000', fontWeight: '800' }}>{t}</Text>
+            },{
+                title: 'Survey Count',
+                dataIndex: 'count',
+                render: (t) => <Text style={{ color: '#000', fontWeight: '800' }}>{t}</Text>
             },
             {
                 title: 'CREDENTIALS',
                 render: (agent) => (
                     <div style={{ fontSize: '12px' }}>
                         {/* FIXED: Change agent.username to agent.userName */}
-                        U: {agent.userName} | P: {agent.password}
+                        U: {agent.userName} | P: {agent.password} | Status: {agent.token }
                     </div>
                 )
             },
             {
                 title: 'STATUS',
                 render: (agent) => {
-                    if (agent.active && !agent.delete) return <Text style={{ color: '#16a34a', fontWeight: '800', fontSize: '12px' }}>ACTIVE</Text>;
-                    if (!agent.active && !agent.delete) return <Text style={{ color: '#000', fontWeight: '800', fontSize: '12px' }}>INACTIVE</Text>;
-                    return <Text style={{ color: '#dc2626', fontWeight: '800', fontSize: '12px' }}>SUSPENDED</Text>;
+                    if (agent.active ) return <Text style={{ color: '#16a34a', fontWeight: '800', fontSize: '12px' }}>ACTIVE</Text>;
+                    if (!agent.active ) return <Text style={{ color: '#dc2626', fontWeight: '800', fontSize: '12px' }}>SUSPENDED</Text>;;
+                    
                 }
             },
             {
@@ -203,9 +220,9 @@ export const SubAgentManager = () => {
                             form.setFieldsValue({ ...agent, username: agent.userName, status: agent.active, isDeleted: agent.delete });
                             setModalVisible(true);
                         }} />
-                        <Popconfirm title="Remove Agent?" onConfirm={() => handleDeleteSubAgent(village._id, agent._id)}>
+                        {/* <Popconfirm title="Remove Agent?" onConfirm={() => handleDeleteSubAgent(village._id, agent._id)}>
                             <Button type="text" danger icon={<DeleteOutlined />} />
-                        </Popconfirm>
+                        </Popconfirm> */}
                     </Space>
                 )
             }
@@ -260,7 +277,14 @@ export const SubAgentManager = () => {
                 />
             </div>
 
-            <Modal title="Sub-Agent Configuration" open={modalVisible} onCancel={() => setModalVisible(false)} onOk={() => form.submit()} destroyOnClose>
+           <Modal 
+                title={editingAgent ? "Edit Sub-Agent" : "Add Sub-Agent"} 
+                open={modalVisible} 
+                onCancel={() => setModalVisible(false)} 
+                onOk={() => form.submit()} 
+                destroyOnClose
+                okText="Save Configuration"
+            >
                 <Form form={form} layout="vertical" onFinish={handleSaveAgent}>
                     <Row gutter={16}>
                         <Col span={12}><Form.Item name="name" label="Full Name" rules={[{ required: true }]}><Input /></Form.Item></Col>
@@ -270,17 +294,40 @@ export const SubAgentManager = () => {
                         <Col span={12}><Form.Item name="username" label="Username" rules={[{ required: true }]}><Input /></Form.Item></Col>
                         <Col span={12}><Form.Item name="password" label="Password" rules={[{ required: true }]}><Input.Password /></Form.Item></Col>
                     </Row>
+                    
                     <Divider orientation="left">Work Assignment</Divider>
-                    <Form.Item name="houseHolds" label={`Assigned Households (Village Total: ${activeVillage?.house_count || 0})`} rules={[{ required: true }]}>
-                        <Input type="number" prefix={<HomeOutlined />} />
+                    
+                    {/* UPDATED LABEL TO SHOW REMAINING COUNT */}
+                    <Form.Item 
+                        name="houseHolds" 
+                        label={
+                            <Space>
+                                Assigned Households
+                                <Tag color="blue">Available: {getAvailableHouses()}</Tag>
+                                <Text type="secondary" style={{ fontSize: '11px' }}>(Total: {activeVillage?.house_count})</Text>
+                            </Space>
+                        } 
+                        rules={[
+                            { required: true, message: 'Please input household count' },
+                            {
+                                validator: (_, value) => {
+                                    if (!value || value <= getAvailableHouses()) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(new Error(`Value cannot exceed available ${getAvailableHouses()} houses`));
+                                }
+                            }
+                        ]}
+                    >
+                        <Input type="number" prefix={<HomeOutlined />} placeholder={`Max allowed: ${getAvailableHouses()}`} />
                     </Form.Item>
+
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item name="active" label="Login Status" valuePropName="checked" initialValue={true}>
                                 <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
                             </Form.Item>
                         </Col>
-
                     </Row>
                 </Form>
             </Modal>
